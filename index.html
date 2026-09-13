@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>JAM BY ADIT</title>
+<style>
+    * {margin:0;padding:0;box-sizing:border-box;}
+    body {
+        background:#000;
+        width:100vw;
+        height:100dvh;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        flex-direction:column;
+        font-family: 'Arial', sans-serif;
+        overflow:hidden;
+    }
+    
+    /* GAK ADA LINGKARAN LAGI */
+    .clock-area {
+        position:relative;
+        width:80vw;
+        height:80vw;
+        max-width:350px;
+        max-height:350px;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+    }
+    
+    .center-dot {
+        width:18px; height:18px; background:#fff; border-radius:50%;
+        position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+        z-index:10; opacity:0; transition:1s;
+    }
+    .center-dot.show {opacity:1;}
+    .center-dot.rgb {animation: rgbDot 5s linear infinite;}
+    @keyframes rgbDot {
+        0%{background:#ff0000; box-shadow:0 0 15px #ff0000;}
+        50%{background:#0000ff; box-shadow:0 0 15px #0000ff;}
+        100%{background:#ff0000; box-shadow:0 0 15px #ff0000;}
+    }
+    .hand {position:absolute;bottom:50%;left:50%;transform-origin:bottom;border-radius:10px;opacity:0;transition:1s;}
+    .hand.show {opacity:1;}
+    .hour {width:6px;height:25%;background:#fff;z-index:3;}
+    .minute {width:4px;height:35%;background:#ccc;z-index:2;}
+    .second {width:2px;height:40%;background:#999;z-index:1;}
+    .hour.rgb {background:linear-gradient(#ff0000,#ffff00);}
+    .minute.rgb {background:linear-gradient(#00ff00,#00ffff);}
+    .second.rgb {background:linear-gradient(#ff00ff,#ff0000);}
+    
+    /* ANGKA MUNCUL 1 PER 1 */
+    .number {
+        position:absolute; font-size:6vw; font-weight:bold;
+        transform:translate(-50%,-50%) scale(0);
+        color:#fff; opacity:0;
+        transition: all 0.4s ease;
+        text-shadow:0 0 0px transparent;
+    }
+    .number.show {transform:translate(-50%,-50%) scale(1); opacity:1;}
+    .number.rgb {animation: rgbText 8s linear infinite; text-shadow:0 0 10px currentColor;}
+    @keyframes rgbText {
+        0%{color:#ff0000;} 50%{color:#00ff00;} 100%{color:#ff0000;}
+    }
+    @media(min-width:500px){.number{font-size:30px}}
+
+    /* JAM DIGITAL */
+    .digital {
+        margin-top:30px; font-size:10vw; font-weight:bold; letter-spacing:5px;
+        color:#fff; opacity:0; transform:translateY(20px); transition: all 1s ease;
+    }
+    .digital.show {opacity:1; transform:translateY(0);}
+    .digital.rgb {animation: rgbDigital 3s linear infinite;}
+    @keyframes rgbDigital {
+        0%{color:#ff0000; text-shadow:0 0 20px #ff0000;}
+        33%{color:#00ff00; text-shadow:0 0 20px #00ff00;}
+        66%{color:#0000ff; text-shadow:0 0 20px #0000ff;}
+        100%{color:#ff0000; text-shadow:0 0 20px #ff0000;}
+    }
+
+    /* CUMA HARI AJA */
+    .day {
+        margin-top:15px; font-size:6vw; font-weight:bold; color:#fff;
+        opacity:0; transform:translateY(20px); transition: all 1s ease;
+        letter-spacing:3px;
+    }
+    .day.show {opacity:1; transform:translateY(0);}
+    .day.rgb {animation: rgbDay 6s linear infinite;}
+    @keyframes rgbDay {
+        0%{color:#ff00ff; text-shadow:0 0 15px #ff00ff;}
+        25%{color:#00ffff; text-shadow:0 0 15px #00ffff;}
+        50%{color:#ffff00; text-shadow:0 0 15px #ffff00;}
+        100%{color:#ff00ff; text-shadow:0 0 15px #ff00ff;}
+    }
+
+    /* SIGNATURE */
+    .signature {
+        margin-top:40px; font-size:4vw; color:#555;
+        opacity:0; transition: all 1.5s ease;
+        font-style: italic;
+    }
+    .signature.show {opacity:1;}
+    .signature.rgb {animation: rgbSig 7s linear infinite;}
+    @keyframes rgbSig {
+        0%{color:#ff0000;} 33%{color:#00ff00;} 66%{color:#0000ff;} 100%{color:#ff0000;}
+    }
+    @media(min-width:500px){
+        .digital{font-size:50px}
+        .day{font-size:28px}
+        .signature{font-size:18px}
+    }
+</style>
+</head>
+<body>
+
+<div class="clock-area" id="clockArea">
+    <div class="center-dot" id="dot"></div>
+    <div class="hand hour" id="hourHand"></div>
+    <div class="hand minute" id="minuteHand"></div>
+    <div class="hand second" id="secondHand"></div>
+</div>
+
+<div class="digital" id="digital">00:00:00</div>
+<div class="day" id="day">Senin</div>
+<div class="signature" id="signature">By AditYaa Rahman</div>
+
+<script>
+const clockArea = document.getElementById('clockArea');
+let numbers = [];
+
+// BIKIN ANGKA 1-12
+for(let i=1; i<=12; i++){
+    let num = document.createElement('div');
+    num.className = 'number';
+    let angle = i * 30 * Math.PI / 180;
+    let x = 50 + 42 * Math.sin(angle);
+    let y = 50 - 42 * Math.cos(angle);
+    num.style.left = x + '%';
+    num.style.top = y + '%';
+    num.innerText = i;
+    clockArea.appendChild(num);
+    numbers.push(num);
+}
+
+function updateClock(){
+    let now = new Date();
+    let hours = now.getHours() % 12;
+    let minutes = now.getMinutes();
+    let seconds = now.getSeconds();
+
+    let secDeg = seconds * 6;
+    let minDeg = minutes * 6 + seconds * 0.1;
+    let hourDeg = hours * 30 + minutes * 0.5;
+
+    document.getElementById('secondHand').style.transform = `translateX(-50%) rotate(${secDeg}deg)`;
+    document.getElementById('minuteHand').style.transform = `translateX(-50%) rotate(${minDeg}deg)`;
+    document.getElementById('hourHand').style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
+
+    let h = String(now.getHours()).padStart(2,'0');
+    let m = String(now.getMinutes()).padStart(2,'0');
+    let s = String(now.getSeconds()).padStart(2,'0');
+    document.getElementById('digital').innerText = `${h}:${m}:${s}`;
+}
+
+// ANIMASI INTRO
+window.onload = function(){
+    // STEP 1: Angka muncul 1 per 1
+    numbers.forEach((num, i) => {
+        setTimeout(() => {
+            num.classList.add('show');
+        }, i * 120);
+    });
+
+    // STEP 2: Jarum + Digital + Hari muncul
+    setTimeout(() => {
+        document.getElementById('dot').classList.add('show');
+        document.getElementById('hourHand').classList.add('show');
+        document.getElementById('minuteHand').classList.add('show');
+        document.getElementById('secondHand').classList.add('show');
+        document.getElementById('digital').classList.add('show');
+        document.getElementById('day').classList.add('show');
+    }, 1600);
+
+    // STEP 3: Signature muncul
+    setTimeout(() => {
+        document.getElementById('signature').classList.add('show');
+    }, 2200);
+
+    // STEP 4: SEMUA GANTI RGB
+    setTimeout(() => {
+        document.getElementById('dot').classList.add('rgb');
+        document.getElementById('hourHand').classList.add('rgb');
+        document.getElementById('minuteHand').classList.add('rgb');
+        document.getElementById('secondHand').classList.add('rgb');
+        document.getElementById('digital').classList.add('rgb');
+        document.getElementById('day').classList.add('rgb');
+        document.getElementById('signature').classList.add('rgb');
+        numbers.forEach(num => num.classList.add('rgb'));
+    }, 3000);
+
+    setInterval(updateClock, 1000);
+    updateClock();
+}
+</script>
+</body>
+  </html>
